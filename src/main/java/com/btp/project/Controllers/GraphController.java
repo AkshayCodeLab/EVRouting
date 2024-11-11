@@ -2,7 +2,8 @@ package com.btp.project.Controllers;
 
 import java.io.IOException;
 import java.io.InputStream;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -11,12 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.btp.project.Components.Graph;
 import com.btp.project.Components.GraphData;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
@@ -24,6 +23,8 @@ public class GraphController {
 
     private final ResourceLoader resourceLoader;
     private final ObjectMapper objectMapper;
+
+    private static final Logger logger = LogManager.getLogger(GraphController.class);
 
     @Autowired
     public GraphController(ResourceLoader resourceLoader, ObjectMapper objectMapper) {
@@ -53,6 +54,8 @@ public class GraphController {
 
     @PostMapping("/getGraph")
     public ResponseEntity<?> getGraph(@RequestBody GraphData data){
+        logger.info("Endpoint getGraph() called");
+        logger.info(data);
       Graph graph = new Graph(data.getN(), data.getEdges());
       return ResponseEntity.ok(graph.getAdj());
 

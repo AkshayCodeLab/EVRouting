@@ -19,4 +19,11 @@ public class GraphData {
     public void setEdges(List<List<Integer>> edges){ this.edges = edges;}
     public void setN(int n){this.n = n;}
 
+    @Override
+    public String toString() {
+        return "\nto: " + to 
+        + "\nfrom: " + from
+        + "\nedges" + edges;
+    }
+
 }
