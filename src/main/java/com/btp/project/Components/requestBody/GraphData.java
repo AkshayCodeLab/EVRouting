@@ -1,4 +1,4 @@
-package com.btp.project.Components;
+package com.btp.project.Components.requestBody;
 
 import java.util.List;
 

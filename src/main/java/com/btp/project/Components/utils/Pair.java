@@ -1,4 +1,4 @@
-package com.btp.project.Components;
+package com.btp.project.Components.utils;
 
 public class Pair<F, S>{
     public F first;
@@ -8,6 +8,9 @@ public class Pair<F, S>{
         this.first = first;
         this.second = second;
     }
+
+    public F getFirst(){return first;}
+    public S getSecond(){return second;}
 
     @Override
     public String toString() {
