@@ -2,6 +2,8 @@ package com.btp.project.Controllers;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import com.btp.project.Algorithms.Algo;
 import com.btp.project.Components.requestBody.AlgoParams;
 import com.btp.project.Components.requestBody.GraphData;
 import com.btp.project.Components.utils.Graph;
+import com.btp.project.Components.utils.Pair;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
@@ -74,9 +77,8 @@ public class GraphController {
         + "to: " + algoParams.getTo()
         + "\n from: " + algoParams.getFrom());
 
-        int var = Algo.shortestPath(algoParams.getTo(),algoParams.getFrom(), graph);
-        logger.info("The shortest path is: " + var);
-        return ResponseEntity.ok("The shortest path is: " + var);
+        Pair<Integer, List<Integer>> path = Algo.shortestPath(algoParams.getFrom(),algoParams.getTo(), graph);
+        return ResponseEntity.ok("The shortest path is: " + path);
     }
 }
 
