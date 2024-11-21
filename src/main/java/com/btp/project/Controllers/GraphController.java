@@ -77,8 +77,8 @@ public class GraphController {
         + "to: " + algoParams.getTo()
         + "\n from: " + algoParams.getFrom());
 
-        Pair<Integer, List<Integer>> path = Algo.shortestPath(algoParams.getFrom(),algoParams.getTo(), graph);
-        return ResponseEntity.ok("The shortest path is: " + path);
+        Pair<Integer, List<Integer>> path = Algo.shortestPathWithFuel(algoParams.getFrom(),algoParams.getTo(), graph, algoParams.getFuel());
+        return ResponseEntity.ok(path);
     }
 }
 

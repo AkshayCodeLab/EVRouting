@@ -1,77 +1,118 @@
 package com.btp.project.Algorithms;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import com.btp.project.Components.utils.Graph;
 import com.btp.project.Components.utils.Pair;
 
 public class Algo {
-        public static Pair<Integer, List<Integer>> shortestPath(int from, int to, Graph graph) {
-    int n = graph.getVertices();
-    List<List<Pair<Integer, Integer>>> adj = graph.getAdj();
-
-    // Initialize distances array
-    int[] distances = new int[n];
-    Arrays.fill(distances, Integer.MAX_VALUE);
-    distances[from] = 0;
-
-    // Predecessor array to store the shortest path track
-    int[] predecessor = new int[n];
-    Arrays.fill(predecessor, -1); // -1 indicates no predecessor
-
-    // Min-heap to select the vertex with the smallest distance
-    PriorityQueue<Pair<Integer, Integer>> pq = new PriorityQueue<>(Comparator.comparingInt(Pair::getSecond));
-    pq.add(new Pair<>(from, 0));
-
-    while (!pq.isEmpty()) {
-        Pair<Integer, Integer> current = pq.poll();
-        int u = current.getFirst();
-        int distU = current.getSecond();
-
-        // If we reached the target node, break out of the loop
-        if (u == to) {
-            break;
-        }
-
-        // If the distance is outdated, skip it
-        if (distU > distances[u]) {
-            continue;
-        }
-
-        // Explore neighbors
-        for (Pair<Integer, Integer> neighbor : adj.get(u)) {
-            int v = neighbor.getFirst();
-            int weight = neighbor.getSecond();
-            int newDist = distances[u] + weight;
-
-            // If a shorter path is found, update distance and predecessor, and push to the queue
-            if (newDist < distances[v]) {
-                distances[v] = newDist;
-                predecessor[v] = u;
-                pq.add(new Pair<>(v, newDist));
+    public static Pair<Integer, List<Integer>> shortestPathWithFuel(int from, int to, Graph graph, int initialFuel) {
+        int n = graph.getVertices();
+        List<List<Pair<Integer, Integer>>> adj = graph.getAdj();
+    
+        // State for tracking: (vertex, distance, fuel, visited, path)
+        class State {
+            int vertex;
+            int distance;
+            int fuel;
+            Set<Integer> visited;
+            boolean refueled;
+            List<Integer> path;
+    
+            State(int vertex, int distance, int fuel, Set<Integer> visited, boolean refueled, List<Integer> path) {
+                this.vertex = vertex;
+                this.distance = distance;
+                this.fuel = fuel;
+                this.visited = visited;
+                this.refueled = refueled;
+                this.path = path;
             }
         }
+    
+        // Comparator to prioritize by distance
+        Comparator<State> stateComparator = Comparator.comparingInt((State s) -> s.distance);
+        
+        // Priority queue for Dijkstra's algorithm with fuel state
+        PriorityQueue<State> pq = new PriorityQueue<>(stateComparator);
+        
+        // Initial visited set and path
+        Set<Integer> initialVisited = new HashSet<>();
+        initialVisited.add(from);
+        List<Integer> initialPath = new ArrayList<>();
+        initialPath.add(from);
+        
+        // Start with initial state
+        pq.offer(new State(from, 0, initialFuel, initialVisited, false, initialPath));
+    
+        // Track best path
+        int bestDistance = Integer.MAX_VALUE;
+        List<Integer> bestPath = new ArrayList<>();
+    
+        while (!pq.isEmpty()) {
+            State current = pq.poll();
+            int u = current.vertex;
+            int currentDist = current.distance;
+            int currentFuel = current.fuel;
+            Set<Integer> currentVisited = current.visited;
+            boolean hasRefueled = current.refueled;
+            List<Integer> currentPath = current.path;
+    
+            // Reached target
+            if (u == to) {
+                if (currentDist < bestDistance) {
+                    bestDistance = currentDist;
+                    bestPath = new ArrayList<>(currentPath);
+                }
+                continue;
+            }
+    
+            // Explore neighbors
+            for (Pair<Integer, Integer> neighborEdge : adj.get(u)) {
+                int v = neighborEdge.getFirst();
+                int edgeWeight = neighborEdge.getSecond();
+    
+                // Skip if vertex already visited
+                if (currentVisited.contains(v)) continue;
+    
+                // Prepare new visited set and path
+                Set<Integer> newVisited = new HashSet<>(currentVisited);
+                newVisited.add(v);
+                List<Integer> newPath = new ArrayList<>(currentPath);
+                newPath.add(v);
+    
+                // Option 1: Move without refueling
+                if (currentFuel >= edgeWeight) {
+                    int newFuel = currentFuel - edgeWeight;
+                    int newDist = currentDist + edgeWeight;
+                    
+                    pq.offer(new State(v, newDist, newFuel, newVisited, hasRefueled, newPath));
+                }
+    
+                // Option 2: Refuel at current node (if not already refueled)
+                if (!hasRefueled && u != from) {
+                    for (int refuelAmount = 1; refuelAmount <= (10 - currentFuel); refuelAmount++) {
+                        int newFuel = Math.min(10, currentFuel + refuelAmount);
+                        
+                        // Check if can move after refueling
+                        if (newFuel >= edgeWeight) {
+                            int newDist = currentDist + refuelAmount + edgeWeight;
+                            
+                            pq.offer(new State(v, newDist, newFuel - edgeWeight, newVisited, true, newPath));
+                        }
+                    }
+                }
+            }
+        }
+    
+        // If target is unreachable, return MAX_VALUE for distance and empty path
+        return bestDistance == Integer.MAX_VALUE 
+            ? new Pair<>(Integer.MAX_VALUE, new ArrayList<>()) 
+            : new Pair<>(bestDistance, bestPath);
     }
-
-    // If the target node is unreachable, return -1 and an empty path
-    if (distances[to] == Integer.MAX_VALUE) {
-        return new Pair<>(-1, new ArrayList<>());
-    }
-
-    // Reconstruct the shortest path track
-    List<Integer> path = new ArrayList<>();
-    for (int at = to; at != -1; at = predecessor[at]) {
-        path.add(at);
-    }
-    Collections.reverse(path); // Reverse to get the path from 'from' to 'to'
-
-    // Return the shortest distance and the path
-    return new Pair<>(distances[to], path);
-}
 
 }
