@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class Graph {
     private int vertices;
     private List<List<Pair<Integer, Integer>>> adj;
-
+    private List<List<Pair<Integer, Integer>>> adjReference;
     public Graph(){
 
     }
@@ -43,9 +43,11 @@ public class Graph {
     }
 
     public void caliberate(float efficiency){
+        adj = deepCopy(adjReference);
         for (List<Pair<Integer, Integer>> it : adj){
             for (Pair<Integer, Integer> x: it){
-                x.setSecond(Math.round(x.getSecond()/efficiency));
+                int fuelVal = (int)Math.ceil(x.getSecond()/efficiency);
+                x.setSecond(fuelVal);
             }
         }
     }
@@ -60,6 +62,23 @@ public class Graph {
             adj.get(u).add(new Pair<>(v, weight));
             adj.get(v).add(new Pair<>(u, weight));
         }
+        this.adjReference = deepCopy(adj);
+    }
+
+    private List<List<Pair<Integer, Integer>>> deepCopy(List<List<Pair<Integer, Integer>>> original) {
+        List<List<Pair<Integer, Integer>>> copy = new ArrayList<>();
+
+        for (List<Pair<Integer, Integer>> innerList : original) {
+            List<Pair<Integer, Integer>> innerCopy = new ArrayList<>();
+            for (Pair<Integer, Integer> pair : innerList) {
+                // Create a new Pair instance to ensure independence
+                Pair<Integer, Integer> newPair = new Pair<>(pair.getFirst(), pair.getSecond());
+                innerCopy.add(newPair);
+            }
+            copy.add(innerCopy);
+        }
+
+        return copy;
     }
 
     public List<List<Pair<Integer, Integer>>> getAdj() {return adj;}
