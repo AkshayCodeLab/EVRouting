@@ -42,6 +42,14 @@ public class Graph {
         return this;
     }
 
+    public void caliberate(float efficiency){
+        for (List<Pair<Integer, Integer>> it : adj){
+            for (Pair<Integer, Integer> x: it){
+                x.setSecond(Math.round(x.getSecond()/efficiency));
+            }
+        }
+    }
+
     private void generateAdjList(List<List<Integer>> edges) {
         for (List<Integer> it : edges) {
             int u = it.get(0); // Source vertex
@@ -56,4 +64,16 @@ public class Graph {
 
     public List<List<Pair<Integer, Integer>>> getAdj() {return adj;}
     public int getVertices() { return vertices;}
+
+    public List<Link> getD3Links(){
+        List<Link> links = new ArrayList<Link>();
+     
+        for (int i = 0; i<adj.size(); i++){
+            for (Pair<Integer, Integer> it: adj.get(i)){
+                links.add(new Link(i, it.getFirst(), it.getSecond()));
+            }
+        }
+        return links;
+
+    }
 }

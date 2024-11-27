@@ -18,9 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.btp.project.Algorithms.Algo;
 import com.btp.project.Components.requestBody.AlgoParams;
+import com.btp.project.Components.requestBody.CaliberateParams;
 import com.btp.project.Components.requestBody.GraphData;
 import com.btp.project.Components.utils.Graph;
 import com.btp.project.Components.utils.Pair;
+import com.btp.project.Models.Vehicle;
+import com.btp.project.Repository.VehicleRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
@@ -28,14 +31,16 @@ public class GraphController {
 
     private final ResourceLoader resourceLoader;
     private final ObjectMapper objectMapper;
+    private final VehicleRepository repository;
     private Graph graph;
     private static final Logger logger = LogManager.getLogger(GraphController.class);
 
     @Autowired
-    public GraphController(ResourceLoader resourceLoader, ObjectMapper objectMapper, Graph graph) {
+    public GraphController(ResourceLoader resourceLoader, ObjectMapper objectMapper, Graph graph, VehicleRepository repository) {
         this.resourceLoader = resourceLoader;
         this.objectMapper = objectMapper;
         this.graph = graph;
+        this.repository = repository;
     }
 
     @GetMapping("/graph")
@@ -79,6 +84,14 @@ public class GraphController {
 
         Pair<Integer, List<Integer>> path = Algo.shortestPathWithFuel(algoParams.getFrom(),algoParams.getTo(), graph, algoParams.getFuel());
         return ResponseEntity.ok(path);
+    }
+
+    @PostMapping("/caliberate")
+    public ResponseEntity<?> caliberate(@RequestBody CaliberateParams params){
+
+        Vehicle vehicle = repository.findByName(params.getName());
+        graph.caliberate(vehicle.getEfficiency());
+        return ResponseEntity.ok(graph.getD3Links());
     }
 }
 
