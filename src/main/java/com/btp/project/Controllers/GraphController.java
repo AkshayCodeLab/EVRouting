@@ -1,97 +1,56 @@
-package com.btp.project.Controllers;
+package com.btp.project.controllers;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.btp.project.Algorithms.Algo;
-import com.btp.project.Components.requestBody.AlgoParams;
-import com.btp.project.Components.requestBody.CaliberateParams;
-import com.btp.project.Components.requestBody.GraphData;
-import com.btp.project.Components.utils.Graph;
-import com.btp.project.Components.utils.Pair;
-import com.btp.project.Models.Vehicle;
-import com.btp.project.Repository.VehicleRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.btp.project.graph.model.Link;
+import com.btp.project.requestBody.AlgoParams;
+import com.btp.project.requestBody.CaliberateParams;
+import com.btp.project.requestBody.GraphData;
+import com.btp.project.service.GraphService;
 
 @RestController
 public class GraphController {
 
-    private final ResourceLoader resourceLoader;
-    private final ObjectMapper objectMapper;
-    private final VehicleRepository repository;
-    private Graph graph;
+    private final GraphService graphService;
     private static final Logger logger = LogManager.getLogger(GraphController.class);
 
     @Autowired
-    public GraphController(ResourceLoader resourceLoader, ObjectMapper objectMapper, Graph graph, VehicleRepository repository) {
-        this.resourceLoader = resourceLoader;
-        this.objectMapper = objectMapper;
-        this.graph = graph;
-        this.repository = repository;
+    public GraphController(GraphService graphService) {
+        this.graphService = graphService;
     }
 
-    @GetMapping("/graph")
+    @GetMapping("/loadGraph")
     public ResponseEntity<?> getGraphData() {
-        try {
-            // Load the graph.json file as a Resource
-            Resource resource = resourceLoader.getResource("classpath:static/graph.json");
-            
-            // Parse the JSON file and map it to GraphData
-            try (InputStream inputStream = resource.getInputStream()) {
-                GraphData data = objectMapper.readValue(inputStream, GraphData.class);
-                Graph graph = new Graph(data.getN(), data.getEdges());
-
-                // Return the adjacency list or graph details as a JSON response
-                return ResponseEntity.ok(graph.getAdj());
-            }
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body("Error loading or parsing graph data.");
-        }
+        return ResponseEntity.ok(graphService.loadGraphFromFile());
     }
 
     @PostMapping("/getGraph")
-    public ResponseEntity<?> getGraph(@RequestBody GraphData data){
+    public ResponseEntity<?> getGraph(@RequestBody GraphData data) {
         logger.info("Endpoint getGraph() called");
-        logger.info("Data Recieved: \n" + data);
-      
-        graph.setVertices(data.getN())
-             .setEdges(data.getEdges());
 
-      return ResponseEntity.ok(graph.getAdj());
+
+        return ResponseEntity.ok(graphService.createGraph(data));
 
     }
 
     @PostMapping("/shortestPath")
-    public ResponseEntity<?> getShortestPath(@RequestBody AlgoParams algoParams){
+    public ResponseEntity<?> getShortestPath(@RequestBody AlgoParams algoParams) {
 
-        logger.info("Algo Parameters recieved: \n" 
-        + "to: " + algoParams.getTo()
-        + "\n from: " + algoParams.getFrom());
-
-        Pair<Integer, List<Integer>> path = Algo.shortestPathWithFuel(algoParams.getFrom(),algoParams.getTo(), graph, algoParams.getFuel());
-        return ResponseEntity.ok(path);
+        return ResponseEntity.ok(graphService.findShortestPath(algoParams));
     }
 
     @PostMapping("/caliberate")
-    public ResponseEntity<?> caliberate(@RequestBody CaliberateParams params){
+    public ResponseEntity<List<Link>> caliberate(@RequestBody CaliberateParams params) {
 
-        Vehicle vehicle = repository.findByName(params.getName());
-        graph.caliberate(vehicle.getEfficiency());
-        return ResponseEntity.ok(graph.getD3Links());
+        return ResponseEntity.ok(graphService.calibrateGraph(params));
     }
 }
 
