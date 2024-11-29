@@ -1,0 +1,84 @@
+START
+ |
+ v
+[Input Parameters]
+    - from (starting vertex)
+    - to (target vertex)
+    - graph (adjacency list representation)
+    - initialFuel (initial fuel available)
+ |
+ v
+[State Representation]
+    - vertex: Current vertex
+    - distance: Distance traveled so far
+    - fuel: Remaining fuel
+    - visited: Set of visited nodes
+    - refueled: Whether refueling has occurred at the current node
+    - path: Current path taken
+ |
+ v
+[Priority Queue Initialization]
+    - Create a priority queue sorted by distance.
+    - Add the initial state:
+        vertex = `from`
+        distance = 0
+        fuel = initialFuel
+        visited = {from}
+        refueled = false
+        path = [from]
+ |
+ v
+[Main Loop]
+    While the priority queue is not empty:
+     |
+     v
+    [Fetch Current State]
+        - Pop the state with the smallest distance from the queue.
+        - Extract: vertex (u), distance, fuel, visited, refueled, path.
+     |
+     v
+    [Check Target Reached?]
+        - If `u == to`:
+            - Update best distance and best path if `distance` is smaller.
+            - Continue to the next iteration.
+     |
+     v
+    [Explore Neighbors]
+        For each neighbor `v` of `u` with edge weight `edgeWeight`:
+         |
+         v
+        [Skip Already Visited Node?]
+            - If `v` is in `visited`, skip this neighbor.
+         |
+         v
+        [Move Without Refueling]
+            - If `fuel >= edgeWeight`:
+                - Calculate newFuel = fuel - edgeWeight.
+                - Calculate newDist = distance + edgeWeight.
+                - Create newState with updated values:
+                    vertex = v, distance = newDist, fuel = newFuel, 
+                    visited = visited ∪ {v}, refueled = refueled, path = path + [v].
+                - Add newState to the priority queue.
+         |
+         v
+        [Move With Refueling (Optional)]
+            - If `!refueled` and `u != from`:
+                For `refuelAmount` from 1 to (10 - fuel):
+                 |
+                 v
+                [Can Move After Refueling?]
+                    - If `fuel + refuelAmount >= edgeWeight`:
+                        - Calculate newFuel = min(10, fuel + refuelAmount) - edgeWeight.
+                        - Calculate newDist = distance + refuelAmount + edgeWeight.
+                        - Create newState with updated values:
+                            vertex = v, distance = newDist, fuel = newFuel, 
+                            visited = visited ∪ {v}, refueled = true, path = path + [v].
+                        - Add newState to the priority queue.
+ |
+ v
+[Output Result]
+    - If the target (`to`) is reachable:
+        Output: bestDistance and bestPath.
+    - Otherwise:
+        Output: Integer.MAX_VALUE and an empty path.
+END

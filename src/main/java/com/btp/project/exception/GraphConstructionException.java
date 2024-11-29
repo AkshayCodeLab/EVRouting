@@ -1,4 +1,4 @@
-package com.btp.project.graph.exception;
+package com.btp.project.exception;
 
 public class GraphConstructionException extends RuntimeException {
     public GraphConstructionException(String message) {

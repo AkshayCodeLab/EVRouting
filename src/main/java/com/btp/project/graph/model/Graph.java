@@ -5,8 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import com.btp.project.Components.utils.Link;
-import com.btp.project.graph.exception.GraphConstructionException;
+import com.btp.project.exception.GraphConstructionException;
 import com.btp.project.graph.utils.GraphValidator;
 
 public class Graph {
@@ -15,6 +14,11 @@ public class Graph {
     private int vertices;
     private List<List<Pair<Integer, Integer>>> adjacencyList;
     private List<List<Pair<Integer, Integer>>> originalAdjacencyList;
+
+    // Public constructor required by spring to initialize graph Bean
+    public Graph() {
+
+    }
 
     // Private constructor to enforce builder pattern
     private Graph(GraphBuilder builder) {
@@ -137,6 +141,18 @@ public class Graph {
             }
         }
         return links;
-
     }
+
+    public Graph setVertices(int vertices) {
+        this.vertices = vertices;
+        return this;
+    }
+
+    public Graph setEdges(List<List<Integer>> edges) {
+        this.adjacencyList = initializeAdjacencyList(this.vertices, edges);
+        this.originalAdjacencyList = deepCopyAdjacencyList(this.adjacencyList);
+
+        return this;
+    }
+
 }

@@ -1,7 +1,7 @@
 package com.btp.project.graph.utils;
 
 import java.util.List;
-import com.btp.project.graph.exception.GraphConstructionException;
+import com.btp.project.exception.GraphConstructionException;
 
 public class GraphValidator {
     public static void validate(int vertices, List<List<Integer>> edges) {
