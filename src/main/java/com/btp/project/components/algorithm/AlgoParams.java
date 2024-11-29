@@ -1,4 +1,4 @@
-package com.btp.project.requestBody;
+package com.btp.project.components.algorithm;
 
 public class AlgoParams {
     private int to;

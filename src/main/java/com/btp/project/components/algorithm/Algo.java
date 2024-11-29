@@ -1,4 +1,4 @@
-package com.btp.project.algorithm;
+package com.btp.project.components.algorithm;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -6,9 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
-
-import com.btp.project.graph.model.Pair;
-import com.btp.project.graph.model.Graph;
+import com.btp.project.components.graph.model.Graph;
+import com.btp.project.components.graph.model.Pair;
 
 public class Algo {
     public static Pair<Integer, List<Integer>> shortestPathWithFuel(int from, int to, Graph graph,

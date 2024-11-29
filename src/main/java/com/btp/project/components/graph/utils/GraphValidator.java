@@ -1,4 +1,4 @@
-package com.btp.project.graph.utils;
+package com.btp.project.components.graph.utils;
 
 import java.util.List;
 import com.btp.project.exception.GraphConstructionException;

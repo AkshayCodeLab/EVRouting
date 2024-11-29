@@ -1,4 +1,4 @@
-package com.btp.project.Models;
+package com.btp.project.components.vehicle;
 
 
 import jakarta.persistence.Entity;

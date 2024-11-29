@@ -1,4 +1,4 @@
-package com.btp.project.graph.model;
+package com.btp.project.components.graph.model;
 
 public class Pair<F, S> {
     public F first;

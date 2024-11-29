@@ -1,4 +1,4 @@
-package com.btp.project.algorithm;
+package com.btp.project.components.algorithm;
 
 import java.util.List;
 import java.util.Set;
