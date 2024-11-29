@@ -1,4 +1,4 @@
-package com.btp.project.Algorithms;
+package com.btp.project.algorithm;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -15,26 +15,6 @@ public class Algo {
             int initialFuel) {
         int n = graph.getVertices();
         List<List<Pair<Integer, Integer>>> adj = graph.getAdjacencyList();
-
-        // State for tracking: (vertex, distance, fuel, visited, path)
-        class State {
-            int vertex;
-            int distance;
-            int fuel;
-            Set<Integer> visited;
-            boolean refueled;
-            List<Integer> path;
-
-            State(int vertex, int distance, int fuel, Set<Integer> visited, boolean refueled,
-                    List<Integer> path) {
-                this.vertex = vertex;
-                this.distance = distance;
-                this.fuel = fuel;
-                this.visited = visited;
-                this.refueled = refueled;
-                this.path = path;
-            }
-        }
 
         // Comparator to prioritize by distance
         Comparator<State> stateComparator = Comparator.comparingInt((State s) -> s.distance);

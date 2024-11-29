@@ -8,25 +8,23 @@ import jakarta.persistence.Id;
 
 @Entity
 public class Vehicle {
-    
+
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private String name;
     private float efficiency;
 
-    protected Vehicle(){};
+    protected Vehicle() {};
 
-    public Vehicle(String name,float efficiency){
+    public Vehicle(String name, float efficiency) {
         this.name = name;
         this.efficiency = efficiency;
     }
 
     @Override
     public String toString() {
-      return String.format(
-          "Vehicle[id=%d, name='%s', efficiency='%s']",
-          id, name, efficiency);
+        return String.format("Vehicle[id=%d, name='%s', efficiency='%s']", id, name, efficiency);
     }
 
     public long getId() {
