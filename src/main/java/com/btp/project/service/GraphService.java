@@ -107,7 +107,7 @@ public class GraphService {
             throw new GraphProcessingException("Vehicle not found: " + params.getName());
         }
 
-        graph.calibrate(vehicle.getEfficiency());
+        graph.calibrate(vehicle.getEfficiency() * 1.60934f);
         return graph.getD3Links();
     }
 
