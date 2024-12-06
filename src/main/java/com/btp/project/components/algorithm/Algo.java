@@ -12,7 +12,6 @@ import com.btp.project.components.graph.model.Pair;
 public class Algo {
     public static Pair<Integer, List<Integer>> shortestPathWithFuel(int from, int to, Graph graph,
             int initialFuel) {
-        int n = graph.getVertices();
         List<List<Pair<Integer, Integer>>> adj = graph.getAdjacencyList();
 
         // Comparator to prioritize by distance
