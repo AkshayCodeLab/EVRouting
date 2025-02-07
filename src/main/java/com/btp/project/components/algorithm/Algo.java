@@ -15,7 +15,8 @@ public class Algo {
         List<List<Pair<Integer, Integer>>> adj = graph.getAdjacencyList();
 
         // Comparator to prioritize by distance
-        Comparator<State> stateComparator = Comparator.comparingInt((State s) -> s.distance);
+        Comparator<State> stateComparator = Comparator.comparingInt((State s) -> s.distance)
+                .thenComparingInt((State s) -> -s.fuel);
 
         // Priority queue for Dijkstra's algorithm with fuel state
         PriorityQueue<State> pq = new PriorityQueue<>(stateComparator);
