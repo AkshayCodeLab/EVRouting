@@ -15,7 +15,7 @@ public class Vehicle {
     private String name;
     private float efficiency;
 
-    protected Vehicle() {};
+    protected Vehicle() {}
 
     public Vehicle(String name, float efficiency) {
         this.name = name;

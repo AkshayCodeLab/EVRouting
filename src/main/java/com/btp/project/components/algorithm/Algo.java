@@ -1,100 +1,144 @@
 package com.btp.project.components.algorithm;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.*;
+
 import com.btp.project.components.graph.model.Graph;
 import com.btp.project.components.graph.model.Pair;
 
 public class Algo {
-    public static Pair<Integer, List<Integer>> shortestPathWithFuel(int from, int to, Graph graph,
-            int initialFuel) {
-        List<List<Pair<Integer, Integer>>> adj = graph.getAdjacencyList();
 
-        // Comparator to prioritize by distance
-        Comparator<State> stateComparator = Comparator.comparingInt((State s) -> s.distance)
-                .thenComparingInt((State s) -> -s.fuel);
+    public static Pair<Integer, List<Integer>> shortestPathWithFuel(int from, int to,
+                                                                    Graph graph, int initialFuel) {
+
+        int capacity = 50;
+        double thresholdPenalty = 0.3;
+        int detourPenaltyFactor = 30;
+        List<List<Pair<Integer, Integer>>> adj = graph.getAdjacencyList();
+        int n = adj.size();
+
+        // Precompute the shortest paths for detour penalty
+        int[] shortestPathFromVToTo = computeShortestPathEnergy(to, adj, n);
+        int shortestPathStartToTo = shortestPathFromVToTo[from];
 
         // Priority queue for Dijkstra's algorithm with fuel state
-        PriorityQueue<State> pq = new PriorityQueue<>(stateComparator);
+        PriorityQueue<State> pq = new PriorityQueue<>(Comparator
+                .comparingInt((State s) -> s.energyCost)
+                .thenComparingInt(s -> -s.fuel));
 
-        // Initial visited set and path
-        Set<Integer> initialVisited = new HashSet<>();
-        initialVisited.add(from);
-        List<Integer> initialPath = new ArrayList<>();
-        initialPath.add(from);
+        int[][] dp = new int[n][capacity + 1];
+        for (int[] row : dp) Arrays.fill(row, Integer.MAX_VALUE);
+        dp[from][initialFuel] = 0;
 
         // Start with initial state
-        pq.offer(new State(from, 0, initialFuel, initialVisited, false, initialPath));
+        pq.offer(new State(from, 0, 0, initialFuel, null));
 
         // Track best path
-        int bestDistance = Integer.MAX_VALUE;
-        List<Integer> bestPath = new ArrayList<>();
+        State bestState = null;
+        int bestEnergy = Integer.MAX_VALUE;
+
+        int refuelCostPerUnit = 1;
+        int threshold = (int) (0.2 * capacity); // 20% threshold
 
         while (!pq.isEmpty()) {
-            State current = pq.poll();
-            int u = current.vertex;
-            int currentDist = current.distance;
-            int currentFuel = current.fuel;
-            Set<Integer> currentVisited = current.visited;
-            boolean hasRefueled = current.refueled;
-            List<Integer> currentPath = current.path;
+            State cur = pq.poll();
+            int u = cur.vertex;
+            int currEnergyCost = cur.energyCost; // Total energy including penalties
+            int currPathEnergy = cur.pathEnergy; // Raw Energy without penalties to find detour
+            int currFuel = cur.fuel;
 
             // Reached target
-            if (u == to) {
-                if (currentDist < bestDistance) {
-                    bestDistance = currentDist;
-                    bestPath = new ArrayList<>(currentPath);
-                }
-                continue;
+            if (u == to && currEnergyCost < bestEnergy) {
+                bestEnergy = currEnergyCost;
+                bestState = cur;
+                continue; // Keep processing for potential better paths
             }
 
-            // Explore neighbors
-            for (Pair<Integer, Integer> neighborEdge : adj.get(u)) {
-                int v = neighborEdge.getFirst();
-                int edgeWeight = neighborEdge.getSecond();
+            if (currEnergyCost > dp[u][currFuel]) continue;
 
-                // Skip if vertex already visited
-                if (currentVisited.contains(v))
-                    continue;
+            // Move to adjacent nodes without refuel
+            for (Pair<Integer, Integer> edge : adj.get(u)) {
+                int v = edge.getFirst();
+                int energyConsumed = edge.getSecond();
 
-                // Prepare new visited set and path
-                Set<Integer> newVisited = new HashSet<>(currentVisited);
-                newVisited.add(v);
-                List<Integer> newPath = new ArrayList<>(currentPath);
-                newPath.add(v);
+                // Not sufficient fuel to reach without refueling
+                if (currFuel < energyConsumed) continue;
 
-                // Option 1: Move without refueling
-                if (currentFuel >= edgeWeight) {
-                    int newFuel = currentFuel - edgeWeight;
-                    int newDist = currentDist + edgeWeight;
+                int newFuel = currFuel - energyConsumed;
+                int newPathEnergy = currPathEnergy + energyConsumed;
 
-                    pq.offer(new State(v, newDist, newFuel, newVisited, hasRefueled, newPath));
+                // Find detour penalty
+                int estimatedTotalEnergy = newPathEnergy + shortestPathFromVToTo[v];
+                int detourExcess = estimatedTotalEnergy - shortestPathStartToTo;
+                if (detourExcess < 0) detourExcess = 0;
+
+                int newEnergy = currEnergyCost + energyConsumed + (detourExcess * detourPenaltyFactor);
+
+                // Apply threshold penalty
+                if (newFuel < threshold) {
+                    newEnergy += (int) ((threshold - newFuel) * thresholdPenalty);
                 }
 
-                // Option 2: Refuel at current node (if not already refueled)
-                if (!hasRefueled && u != from) {
-                    for (int refuelAmount = 1; refuelAmount <= (10 - currentFuel); refuelAmount++) {
-                        int newFuel = Math.min(10, currentFuel + refuelAmount);
+                if (newEnergy < dp[v][newFuel]) {
+                    dp[v][newFuel] = newEnergy;
+                    pq.offer(new State(v, newEnergy, newPathEnergy, newFuel, cur));
+                }
 
-                        // Check if can move after refueling
-                        if (newFuel >= edgeWeight) {
-                            int newDist = currentDist + refuelAmount + edgeWeight;
+            }
 
-                            pq.offer(new State(v, newDist, newFuel - edgeWeight, newVisited, true,
-                                    newPath));
-                        }
+            // Charging logic
+            if (graph.isChargingStation(u)){
+
+                int step = Math.max(1, capacity / 10);
+                for (int charge = step; currFuel + charge <= capacity; charge += step) {
+                    int newFuel = currFuel + charge;
+                    int refuelCost = charge * refuelCostPerUnit; // Assuming refuel cost is 1 per unit
+                    int newEnergy = currEnergyCost + refuelCost;
+
+                    if (newEnergy < dp[u][newFuel]) {
+                        dp[u][newFuel] = newEnergy;
+                        pq.offer(new State(u, newEnergy, currPathEnergy, newFuel, cur));
                     }
                 }
             }
+
         }
 
+        // Reconstruct path
+        List<Integer> path = new ArrayList<>();
+        for (State s = bestState; s != null; s = s.predecessor)
+            path.add(s.vertex);
+        Collections.reverse(path);
+
         // If target is unreachable, return MAX_VALUE for distance and empty path
-        return bestDistance == Integer.MAX_VALUE ? new Pair<>(Integer.MAX_VALUE, new ArrayList<>())
-                : new Pair<>(bestDistance, bestPath);
+        return bestEnergy == Integer.MAX_VALUE ?
+                new Pair<>(Integer.MAX_VALUE, Collections.emptyList()) :
+                new Pair<>(bestEnergy, path);
+
+    }
+
+    public static int[] computeShortestPathEnergy(int to, List<List<Pair<Integer, Integer>>> adj, int n){
+
+        int[] dist = new int[n];
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        dist[to] = 0;
+        PriorityQueue<Pair<Integer, Integer>> pq = new PriorityQueue<>(Comparator.comparingInt(Pair::getSecond));
+        pq.offer(new Pair<>(to, 0));
+
+        while (!pq.isEmpty()) {
+            Pair<Integer, Integer> cur = pq.poll();
+            int u = cur.getFirst();
+            int d = cur.getSecond();
+            if (d > dist[u]) continue;
+            for (Pair<Integer, Integer> edge : adj.get(u)) {
+                int v = edge.getFirst();
+                int newDist = d + edge.getSecond();
+                if (newDist < dist[v]) {
+                    dist[v] = newDist;
+                    pq.offer(new Pair<>(v, newDist));
+                }
+            }
+        }
+        return dist;
     }
 
 }

@@ -1,8 +1,7 @@
 package com.btp.project.components.graph.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.btp.project.components.graph.utils.GraphValidator;
@@ -14,6 +13,7 @@ public class Graph {
     private int vertices;
     private List<List<Pair<Integer, Integer>>> adjacencyList;
     private List<List<Pair<Integer, Integer>>> originalAdjacencyList;
+    private Set<Integer> chargingStations = new HashSet<>();
 
     // Public constructor required by spring to initialize graph Bean
     public Graph() {
@@ -33,6 +33,7 @@ public class Graph {
     public static class GraphBuilder {
         private int vertices;
         private List<List<Integer>> edges = new ArrayList<>();
+        private Set<Integer> chargingStations = new HashSet<>();
 
         public GraphBuilder vertices(int vertices) {
             this.vertices = vertices;
@@ -44,8 +45,15 @@ public class Graph {
             return this;
         }
 
+        public GraphBuilder chargingStations(Set<Integer> stations) {
+            this.chargingStations = new HashSet<>(stations);
+            return this;
+        }
+
         public Graph build() {
-            return new Graph(this);
+            Graph graph = new Graph(this);
+            graph.chargingStations = this.chargingStations;  // Assign charging stations
+            return graph;
         }
     }
 
@@ -122,6 +130,13 @@ public class Graph {
         }
 
         this.adjacencyList = workingList;
+    }
+
+    public boolean isChargingStation(int u) {
+        if (u < 0 || u >= vertices) {
+            throw new IllegalArgumentException("Vertex out of bounds: " + u);
+        }
+        return chargingStations.contains(u);
     }
 
     public List<List<Pair<Integer, Integer>>> getAdjacencyList() {

@@ -1,9 +1,9 @@
 package com.btp.project.components.graph.model;
 
 public class Link {
-    private Integer source;
-    private Integer target;
-    private Integer value;
+    private final Integer source;
+    private final Integer target;
+    private final Integer value;
 
     public Link(Integer source, Integer target, Integer value) {
         this.source = source;
