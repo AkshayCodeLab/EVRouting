@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import com.btp.project.components.algorithm.AlgoParams;
 import com.btp.project.components.graph.model.Link;
-import com.btp.project.requestBody.CaliberateParams;
-import com.btp.project.requestBody.GraphData;
+import com.btp.project.dto.request.CaliberateParams;
+import com.btp.project.dto.request.GraphData;
 import com.btp.project.service.GraphService;
 
 @RestController

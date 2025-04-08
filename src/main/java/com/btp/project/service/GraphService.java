@@ -2,6 +2,8 @@ package com.btp.project.service;
 
 import java.io.InputStream;
 import java.util.List;
+
+import com.btp.project.dto.response.GraphResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +18,8 @@ import com.btp.project.components.graph.model.Pair;
 import com.btp.project.components.vehicle.Vehicle;
 import com.btp.project.exception.GraphConstructionException;
 import com.btp.project.exception.GraphProcessingException;
-import com.btp.project.requestBody.CaliberateParams;
-import com.btp.project.requestBody.GraphData;
+import com.btp.project.dto.request.CaliberateParams;
+import com.btp.project.dto.request.GraphData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.Resource;
 
@@ -68,13 +70,16 @@ public class GraphService {
      * @param data Graph configuration data
      * @return Graph's adjacency list
      */
-    public List<List<Pair<Integer, Integer>>> createGraph(GraphData data)
+    public GraphResponse createGraph(GraphData data)
             throws GraphConstructionException {
         logger.info("Creating graph with data: {}", data);
 
-        graph.setVertices(data.getN()).setEdges(data.getEdges());
+        graph.setVertices(data.getN())
+                .setEdges(data.getEdges())
+                .setChargingStations(data.getChargingStations());
 
-        return graph.getAdjacencyList();
+        logger.info("Successfully created the Graph: " + graph);
+        return new GraphResponse(graph.getAdjacencyList(), graph.getVertices(), graph.getChargingStations());
     }
 
     /**
@@ -88,7 +93,13 @@ public class GraphService {
         logger.info("Finding shortest path: from {} to {}, fuel: {}", params.getFrom(),
                 params.getTo(), params.getFuel());
 
-        return Algo.shortestPathWithFuel(params.getFrom(), params.getTo(), graph, params.getFuel());
+        int capacity = 50;
+        double thresholdPenalty = 0.3;
+        int detourPenaltyFactor = 30;
+        int refuelCostPerUnit = 1;
+
+        return Algo.shortestPathWithFuel(params.getFrom(), params.getTo(), graph, params.getFuel(), capacity
+        , thresholdPenalty, detourPenaltyFactor, refuelCostPerUnit);
     }
 
     /**

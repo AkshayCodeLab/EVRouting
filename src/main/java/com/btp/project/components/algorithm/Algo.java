@@ -7,12 +7,12 @@ import com.btp.project.components.graph.model.Pair;
 
 public class Algo {
 
-    public static Pair<Integer, List<Integer>> shortestPathWithFuel(int from, int to,
-                                                                    Graph graph, int initialFuel) {
+    public static Pair<Integer, List<Integer>> shortestPathWithFuel(
+            int from, int to, Graph graph, int initialFuel,
+            int capacity, double thresholdPenalty, int detourPenaltyFactor, int refuelCostPerUnit
+    ) {
 
-        int capacity = 50;
-        double thresholdPenalty = 0.3;
-        int detourPenaltyFactor = 30;
+
         List<List<Pair<Integer, Integer>>> adj = graph.getAdjacencyList();
         int n = adj.size();
 
@@ -36,7 +36,6 @@ public class Algo {
         State bestState = null;
         int bestEnergy = Integer.MAX_VALUE;
 
-        int refuelCostPerUnit = 1;
         int threshold = (int) (0.2 * capacity); // 20% threshold
 
         while (!pq.isEmpty()) {
@@ -118,6 +117,18 @@ public class Algo {
 
     public static int[] computeShortestPathEnergy(int to, List<List<Pair<Integer, Integer>>> adj, int n){
 
+        // Reverse the adjacency list to compute paths TO 'to'
+        List<List<Pair<Integer, Integer>>> reversedAdj = new ArrayList<>();
+        for (int i = 0; i < n; i++) reversedAdj.add(new ArrayList<>());
+
+        for (int u = 0; u < adj.size(); u++) {
+            for (Pair<Integer, Integer> edge : adj.get(u)) {
+                int v = edge.getFirst();
+                int cost = edge.getSecond();
+                reversedAdj.get(v).add(new Pair<>(u, cost)); // Reverse edge direction
+            }
+        }
+
         int[] dist = new int[n];
         Arrays.fill(dist, Integer.MAX_VALUE);
         dist[to] = 0;
@@ -129,7 +140,7 @@ public class Algo {
             int u = cur.getFirst();
             int d = cur.getSecond();
             if (d > dist[u]) continue;
-            for (Pair<Integer, Integer> edge : adj.get(u)) {
+            for (Pair<Integer, Integer> edge : reversedAdj.get(u)) {
                 int v = edge.getFirst();
                 int newDist = d + edge.getSecond();
                 if (newDist < dist[v]) {

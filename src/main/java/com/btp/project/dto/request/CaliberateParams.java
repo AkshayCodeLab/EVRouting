@@ -1,4 +1,4 @@
-package com.btp.project.requestBody;
+package com.btp.project.dto.request;
 
 public class CaliberateParams {
     private String name;

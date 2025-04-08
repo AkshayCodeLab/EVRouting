@@ -147,6 +147,10 @@ public class Graph {
         return vertices;
     }
 
+    public Set<Integer> getChargingStations() {
+        return chargingStations;
+    }
+
     public List<Link> getD3Links() {
         List<Link> links = new ArrayList<Link>();
 
@@ -168,6 +172,30 @@ public class Graph {
         this.originalAdjacencyList = deepCopyAdjacencyList(this.adjacencyList);
 
         return this;
+    }
+
+    public Graph setChargingStations(Set<Integer> chargingStations) {
+        this.chargingStations = new HashSet<>(chargingStations);
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Graph{\n");
+        sb.append("  vertices=").append(vertices).append(",\n");
+        sb.append("  chargingStations=").append(chargingStations).append(",\n");
+        sb.append("  adjacencyList=[\n");
+        for (int i = 0; i < adjacencyList.size(); i++) {
+            sb.append("    ").append(i).append(": ");
+            for (Pair<Integer, Integer> pair : adjacencyList.get(i)) {
+                sb.append("(").append(pair.getFirst()).append(", ").append(pair.getSecond()).append(") ");
+            }
+            sb.append("\n");
+        }
+        sb.append("  ]\n");
+        sb.append("}");
+        return sb.toString();
     }
 
 }
