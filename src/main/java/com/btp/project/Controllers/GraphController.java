@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import com.btp.project.components.algorithm.AlgoParams;
 import com.btp.project.components.graph.model.Link;
-import com.btp.project.dto.request.CaliberateParams;
+import com.btp.project.dto.request.CalibrateParams;
 import com.btp.project.dto.request.GraphData;
 import com.btp.project.service.GraphService;
 
@@ -47,8 +47,8 @@ public class GraphController {
         return ResponseEntity.ok(graphService.findShortestPath(algoParams));
     }
 
-    @PostMapping("/caliberate")
-    public ResponseEntity<List<Link>> caliberate(@RequestBody CaliberateParams params) {
+    @PostMapping("/calibrate")
+    public ResponseEntity<List<Link>> calibrate(@RequestBody CalibrateParams params) {
 
         return ResponseEntity.ok(graphService.calibrateGraph(params));
     }

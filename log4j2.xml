@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="DEBUG">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d [%t] %-5level: %msg%n%throwable"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <!-- Set the root logger to DEBUG -->
+        <Root level="debug">
+            <AppenderRef ref="Console"/>
+        </Root>
+
+        <!-- Optional: Configure a specific package or class logger -->
+        <Logger name="com.btp.project.components.algorithm" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+    </Loggers>
+</Configuration>

@@ -1,6 +1,6 @@
 package com.btp.project.dto.request;
 
-public class CaliberateParams {
+public class CalibrateParams {
     private String name;
 
     public String getName() {
@@ -13,6 +13,6 @@ public class CaliberateParams {
 
     @Override
     public String toString() {
-        return "Caliberate Params recieved: " + name + "\n";
+        return "Calibrate Params received: " + name + "\n";
     }
 }

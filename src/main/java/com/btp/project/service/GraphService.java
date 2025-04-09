@@ -18,7 +18,7 @@ import com.btp.project.components.graph.model.Pair;
 import com.btp.project.components.vehicle.Vehicle;
 import com.btp.project.exception.GraphConstructionException;
 import com.btp.project.exception.GraphProcessingException;
-import com.btp.project.dto.request.CaliberateParams;
+import com.btp.project.dto.request.CalibrateParams;
 import com.btp.project.dto.request.GraphData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.Resource;
@@ -108,7 +108,7 @@ public class GraphService {
      * @param params Calibration parameters
      * @return Calibrated graph links
      */
-    public List<Link> calibrateGraph(CaliberateParams params) {
+    public List<Link> calibrateGraph(CalibrateParams params) {
         logger.info("Calibrating graph for vehicle: {}", params.getName());
 
         Vehicle vehicle = vehicleRepository.findByName(params.getName());

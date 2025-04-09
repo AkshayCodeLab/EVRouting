@@ -30,7 +30,7 @@ public class Algo {
         dp[from][initialFuel] = 0;
 
         // Start with initial state
-        pq.offer(new State(from, 0, 0, initialFuel, null));
+        pq.offer(new State(from, 0, 0, initialFuel, null, false));
 
         // Track best path
         State bestState = null;
@@ -44,6 +44,7 @@ public class Algo {
             int currEnergyCost = cur.energyCost; // Total energy including penalties
             int currPathEnergy = cur.pathEnergy; // Raw Energy without penalties to find detour
             int currFuel = cur.fuel;
+            boolean hasChargedHere = cur.hasChargedHere;
 
             // Reached target
             if (u == to && currEnergyCost < bestEnergy) {
@@ -79,13 +80,13 @@ public class Algo {
 
                 if (newEnergy < dp[v][newFuel]) {
                     dp[v][newFuel] = newEnergy;
-                    pq.offer(new State(v, newEnergy, newPathEnergy, newFuel, cur));
+                    pq.offer(new State(v, newEnergy, newPathEnergy, newFuel, cur, false));
                 }
 
             }
 
             // Charging logic
-            if (graph.isChargingStation(u)){
+            if (graph.isChargingStation(u) && !hasChargedHere){
 
                 int step = Math.max(1, capacity / 10);
                 for (int charge = step; currFuel + charge <= capacity; charge += step) {
@@ -95,7 +96,7 @@ public class Algo {
 
                     if (newEnergy < dp[u][newFuel]) {
                         dp[u][newFuel] = newEnergy;
-                        pq.offer(new State(u, newEnergy, currPathEnergy, newFuel, cur));
+                        pq.offer(new State(u, newEnergy, currPathEnergy, newFuel, cur, true));
                     }
                 }
             }
