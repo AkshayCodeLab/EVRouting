@@ -25,7 +25,7 @@ public class Algo {
         // Precompute the shortest paths for detour penalty
         int[] shortestPathFromVToTo = computeShortestPathEnergy(to, adj, n);
         int shortestPathStartToTo = shortestPathFromVToTo[from];
-        logger.info("Precomputed shortest paths from vertices to target {}: shortestPathStartToTo={}", to, shortestPathStartToTo);
+        logger.info("Precomputed detour costs: start vertex distance to target = {}", shortestPathStartToTo);
 
         // Priority queue for Dijkstra's algorithm with fuel state
         PriorityQueue<State> pq = new PriorityQueue<>(Comparator
@@ -59,7 +59,7 @@ public class Algo {
                     u, currEnergyCost, currPathEnergy, currFuel, hasChargedHere);
 
             if (currEnergyCost > dp[u][currFuel] || isDominated(u, currFuel, currEnergyCost, capacity, dp)) {
-                logger.info("Skipping state: dominated or outdated");
+                logger.info("Skipping state at vertex {} (fuel {}) as it is outdated or dominated", u, currFuel);
                 continue;
             }
 
@@ -67,20 +67,22 @@ public class Algo {
             if (u == to && currEnergyCost < bestEnergy) {
                 bestEnergy = currEnergyCost;
                 bestState = cur;
-                logger.info("Reached target: vertex={}, newBestEnergy={}", u, bestEnergy);
+                logger.info("Reached target {} with improved energyCost={}", to, bestEnergy);
                 // Continue processing as we might still find better solutions
                 continue;
             }
-
-
 
             // Move to adjacent nodes without refuel
             for (Pair<Integer, Integer> edge : adj.get(u)) {
                 int v = edge.getFirst();
                 int energyConsumed = edge.getSecond();
 
+                if (cur.visited.get(v)) {
+                    logger.info("Skipping already visited node {} from vertex {}", v, u);
+                    continue;
+                }
                 if (currFuel < energyConsumed) {
-                    logger.info("Insufficient fuel: vertex={}, needed={}, available={}", u, energyConsumed, currFuel);
+                    logger.info("Cannot move from vertex {} to {}: insufficient fuel (needs {}, has {})", u, v, energyConsumed, currFuel);
                     continue;
                 }
 
@@ -96,8 +98,8 @@ public class Algo {
                 if (newFuel < threshold) {
                     int penalty = (int) ((threshold - newFuel) * thresholdPenalty);
                     newEnergy += penalty;
-                    logger.info("Applied threshold penalty at vertex {}: fuel={}, threshold={}, penalty={}",
-                            v, newFuel, threshold, penalty);
+                    logger.info("Applied threshold penalty at vertex {}: fuel={}, penalty={}", v, newFuel, penalty);
+
                 }
 
                 logger.info("Edge from {} to {}: energyConsumed={}, newFuel={}, newPathEnergy={}, newEnergy={}",
@@ -105,35 +107,36 @@ public class Algo {
 
                 // Check if new state is dominated
                 if (isDominated(v, newFuel, newEnergy, capacity, dp)) {
-                    logger.info("State dominated: skipping");
+                    logger.info("Skipping dominated state for vertex {} with fuel {}", v, newFuel);
                     continue;
                 }
 
                 // Update DP and enqueue
                 if (newEnergy < dp[v][newFuel]) {
+
                     dp[v][newFuel] = newEnergy;
                     State newState = new State(v, newEnergy, newPathEnergy, newFuel, cur, false);
                     pq.offer(newState);
-                    logger.info("Added new state: {}", newState);
+                    logger.info("Enqueued new state: {}", newState);
                 }
 
             }
 
             // Charging logic
             if (graph.isChargingStation(u) && !hasChargedHere) {
-                logger.info("At charging station at vertex {} with fuel={}", u, currFuel);
+
+                logger.info("At charging station at vertex {}: evaluating refueling options (current fuel={})", u, currFuel);
                 int step = Math.max(1, capacity / 10);
                 for (int charge = step; currFuel + charge <= capacity; charge += step) {
                     int newFuel = currFuel + charge;
                     int refuelCost = charge * refuelCostPerUnit;
                     int newEnergy = currEnergyCost + refuelCost;
 
-                    logger.info("Considering charging at vertex {}: chargeIncrement={}, newFuel={}, refuelCost={}, newEnergy={}",
+                    logger.info("Charging option at {}: increment={}, newFuel={}, refuelCost={}, newEnergy={}",
                             u, charge, newFuel, refuelCost, newEnergy);
-
                     // Check if new charging state is dominated
                     if (isDominated(u, newFuel, newEnergy, capacity, dp)) {
-                        logger.info("Charging state dominated: skipping");
+                        logger.info("Skipping charging option at vertex {} (new fuel {} dominated)", u, newFuel);
                         continue;
                     }
 
@@ -141,9 +144,9 @@ public class Algo {
                     if (newEnergy < dp[u][newFuel]) {
 
                         dp[u][newFuel] = newEnergy;
-                        State chargeState = new State(u, newEnergy, currPathEnergy, newFuel, cur, true);
+                        State chargeState = new State(u, newEnergy, currPathEnergy, newFuel, cur.predecessor, true);
                         pq.offer(chargeState);
-                        logger.info("Added charging state: {}", chargeState);
+                        logger.info("Enqueued charging state: {}", chargeState);
                     }
                 }
             }
@@ -157,16 +160,16 @@ public class Algo {
         Collections.reverse(path);
 
         if (bestEnergy == Integer.MAX_VALUE) {
-            logger.info("Target {} unreachable from {}", to, from);
+            logger.info("No path found from {} to {}", from, to);
             return new Pair<>(Integer.MAX_VALUE, Collections.emptyList());
         } else {
-            logger.info("Best path found to target {}: energyCost={}, path={}", to, bestEnergy, path);
+            logger.info("Path found to {}: energyCost={}, path={}", to, bestEnergy, path);
             return new Pair<>(bestEnergy, path);
         }
     }
 
     public static int[] computeShortestPathEnergy(int to, List<List<Pair<Integer, Integer>>> adj, int n) {
-        logger.info("Computing reverse shortest path energy to target {}", to);
+        logger.info("Starting reverse shortest path computation toward target {}", to);
 
         // Reverse the adjacency list to compute paths TO 'to'
         List<List<Pair<Integer, Integer>>> reversedAdj = new ArrayList<>();
@@ -204,7 +207,7 @@ public class Algo {
                 }
             }
         }
-        logger.info("Completed computing reverse shortest path. Target distance for start vertex: {}", dist[to]);
+        logger.info("Completed reverse shortest path computation for target {}", to);
         return dist;
     }
 

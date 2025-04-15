@@ -1,5 +1,6 @@
 package com.btp.project.components.algorithm;
 
+import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 
@@ -11,6 +12,7 @@ public class State {
      int fuel;
      State predecessor;
      boolean hasChargedHere;
+     BitSet visited;
 
     public State(int vertex, int energyCost, int pathEnergy, int fuel, State predecessor, boolean hasChargedHere) {
         this.vertex = vertex;
@@ -19,6 +21,11 @@ public class State {
         this.fuel = fuel;
         this.predecessor = predecessor;
         this.hasChargedHere = hasChargedHere;
+        this.visited = new BitSet();
+        if (predecessor != null) {
+            this.visited = (BitSet) predecessor.visited.clone();
+        }
+        this.visited.set(vertex);
     }
 
     @Override

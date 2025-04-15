@@ -93,7 +93,7 @@ public class GraphService {
         logger.info("Finding shortest path: from {} to {}, fuel: {}", params.getFrom(),
                 params.getTo(), params.getFuel());
 
-        int capacity = 50;
+        int capacity = 20;
         double thresholdPenalty = 0.3;
         int detourPenaltyFactor = 30;
         int refuelCostPerUnit = 1;
