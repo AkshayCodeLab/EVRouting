@@ -31,6 +31,9 @@ public class Algo {
 
         Normalizer normalizer = new Normalizer(graph, from, to, capacity, shortestPathFromVToTo, shortestPathStartToTo);
 
+        logger.info("Normalizer initialized with maxFuel={}, maxDetour={}, maxDistanceFromThreshold={}, maxRefuel={}.",
+                normalizer.getMaxFuel(), normalizer.getMaxDetour(), normalizer.getMaxDistanceFromThreshold(), normalizer.getMaxRefuel());
+
         // Priority queue for Dijkstra's algorithm with fuel state
         PriorityQueue<State> pq = new PriorityQueue<>(Comparator
                 .comparingDouble((State s) -> s.energyCost)
@@ -51,6 +54,7 @@ public class Algo {
         State bestState = null;
         double bestEnergy = Double.POSITIVE_INFINITY;
         int threshold = (int) (0.2 * capacity); // 20% threshold
+        logger.info("Fuel threshold set at {} (20% of capacity)", threshold);
 
         while (!pq.isEmpty()) {
             State cur = pq.poll();
@@ -60,11 +64,14 @@ public class Algo {
             int currFuel = cur.fuel;
             boolean hasChargedHere = cur.hasChargedHere;
 
-            logger.info("Processing state: vertex={}, energyCost={}, pathEnergy={}, fuel={}, hasChargedHere={}",
-                    u, currEnergyCost, currPathEnergy, currFuel, hasChargedHere);
+            logger.info("[PROCESS] state: {}", cur);
 
-            if (currEnergyCost > dp[u][currFuel] || isDominated(u, currFuel, currEnergyCost, capacity, dp)) {
-                logger.info("Skipping state at vertex {} (fuel {}) as it is outdated or dominated", u, currFuel);
+            if (currEnergyCost > dp[u][currFuel]) {
+                logger.trace("State outdated: dp[{}][{}] = {} < currentCost {}", u, currFuel, dp[u][currFuel], currEnergyCost);
+                continue;
+            }
+            if (isDominated(u, currFuel, currEnergyCost, capacity, dp)) {
+                logger.trace("State dominated at vertex {} with fuel {} and cost {}", u, currFuel, currEnergyCost);
                 continue;
             }
 
@@ -72,7 +79,7 @@ public class Algo {
             if (u == to && currEnergyCost < bestEnergy) {
                 bestEnergy = currEnergyCost;
                 bestState = cur;
-                logger.info("Reached target {} with improved energyCost={}", to, bestEnergy);
+                logger.info("[TARGET] reached {} with improved cost {}", to, bestEnergy);
                 // Continue processing as we might still find better solutions
                 continue;
             }
@@ -109,14 +116,14 @@ public class Algo {
                     double distanceFromThreshold = threshold - newFuel;
                     double thresholdTerm = (distanceFromThreshold / normalizer.getMaxDistanceFromThreshold()) * thresholdPenalty;
                     newEnergy += thresholdTerm;
+                    logger.info("Threshold penalty applied: distance={}, term={}", distanceFromThreshold, thresholdTerm);
                 }
 
-                logger.info("Edge from {} to {}: energyConsumed={}, newFuel={}, newPathEnergy={}, newEnergy={}",
-                        u, v, energyConsumed, newFuel, newPathEnergy, newEnergy);
+                logger.info("Evaluate move {}->{} | fuel {}, newFuel {}, energyCost {}", u, v, currFuel, newFuel, newEnergy);
 
                 // Check if new state is dominated
                 if (isDominated(v, newFuel, newEnergy, capacity, dp)) {
-                    logger.info("Skipping dominated state for vertex {} with fuel {}", v, newFuel);
+                    logger.info("Dominated move to {} with fuel {} and cost {}", v, newFuel, newEnergy);
                     continue;
                 }
 
@@ -144,7 +151,7 @@ public class Algo {
 
                     // Check if new charging state is dominated
                     if (isDominated(u, newFuel, newEnergy, capacity, dp)) {
-                        logger.info("Skipping charging option at vertex {} (new fuel {} dominated)", u, newFuel);
+                        logger.info("Dominated charging option: fuel {} cost {}", newFuel, newEnergy);
                         continue;
                     }
 
@@ -168,16 +175,16 @@ public class Algo {
         Collections.reverse(path);
 
         if (bestEnergy == Double.POSITIVE_INFINITY) {
-            logger.info("No path found from {} to {}", from, to);
+            logger.info("No feasible path found from {} to {}", from, to);
             return new Pair<>(Double.POSITIVE_INFINITY, Collections.emptyList());
         } else {
-            logger.info("Path found to {}: energyCost={}, path={}", to, bestEnergy, path);
+            logger.info("[END] Path found: cost={}, path={} (length={})", bestEnergy, path, path.size());
             return new Pair<>(bestEnergy, path);
         }
     }
 
     public static int[] computeShortestPathEnergy(int to, List<List<Pair<Integer, Integer>>> adj, int n) {
-        logger.info("Starting reverse shortest path computation toward target {}", to);
+        logger.info("[START] computeShortestPathEnergy toward {} on graph of size {}", to, n);
 
         // Reverse the adjacency list to compute paths TO 'to'
         List<List<Pair<Integer, Integer>>> reversedAdj = new ArrayList<>();

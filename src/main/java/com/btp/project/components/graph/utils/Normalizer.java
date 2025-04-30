@@ -2,6 +2,9 @@ package com.btp.project.components.graph.utils;
 
 import com.btp.project.components.graph.model.Graph;
 import com.btp.project.components.graph.model.Pair;
+import com.btp.project.service.GraphService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -13,12 +16,14 @@ public class Normalizer {
     private final double maxRefuel;
     private final double maxDistanceFromThreshold;
     private final double maxDetour;
+    private static final Logger logger = LogManager.getLogger(Normalizer.class);
 
-    public Normalizer(Graph graph, int from, int to, int capacity, int[] shortestPathsFromVToTo, int shortestPathStartToTo) {
-        this.maxFuel = computeMaxFuel(graph);
-        this.maxRefuel = capacity;
-        this.maxDistanceFromThreshold = 0.2 * capacity;
-        this.maxDetour = computeMaxDetour(graph, from, shortestPathsFromVToTo, shortestPathStartToTo);
+
+    public Normalizer(Graph graph, int from, int to, int capacity, int[] shortestPathsFromVToTo, int shortestPathStartToTo) {        this.maxFuel = safeMax(computeMaxFuel(graph), "fuel");
+        this.maxRefuel = safeMax(capacity, "refuel capacity");
+        this.maxDistanceFromThreshold = safeMax(0.2 * capacity, "threshold distance");
+        this.maxDetour = safeMax(computeMaxDetour(graph, from, shortestPathsFromVToTo,
+                shortestPathStartToTo), "detour");
     }
 
     private double computeMaxFuel(Graph graph) {
@@ -40,9 +45,15 @@ public class Normalizer {
             for (Pair<Integer, Integer> edge : graph.getAdjacencyList().get(u)) {
                 int v = edge.getFirst();
                 int e = edge.getSecond();
-                int pathEnergyToU = shortestPathsFromStart[u];
-                int remainingPath = shortestPathsFromVToTo[v];
-                int detourExcess = Math.max(0, (pathEnergyToU + e + remainingPath) - shortestPathStartToTo);
+
+                // Handle unreachable paths
+                if (shortestPathsFromStart[u] == Integer.MAX_VALUE ||
+                        shortestPathsFromVToTo[v] == Integer.MAX_VALUE) {
+                    continue;
+                }
+
+                int totalPathEnergy = shortestPathsFromStart[u] + e + shortestPathsFromVToTo[v];
+                int detourExcess = Math.max(0, totalPathEnergy - shortestPathStartToTo);
                 maxDetour = Math.max(maxDetour, detourExcess);
             }
         }
@@ -72,6 +83,14 @@ public class Normalizer {
             }
         }
         return dist;
+    }
+
+    private double safeMax(double value, String termName) {
+        if (value <= 0) {
+            logger.info("Max {} is {}, using 1.0 to prevent division by zero", termName, value);
+            return 1.0;
+        }
+        return value;
     }
 
     // Getters
