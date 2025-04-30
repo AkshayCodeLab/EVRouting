@@ -88,7 +88,7 @@ public class GraphService {
      * @param params Algorithm parameters
      * @return Shortest path details
      */
-    public Pair<Integer, List<Integer>> findShortestPath(AlgoParams params) {
+    public Pair<Double, List<Integer>> findShortestPath(AlgoParams params) {
 
         logger.info("Finding shortest path: from {} to {}, fuel: {}", params.getFrom(),
                 params.getTo(), params.getFuel());

@@ -7,14 +7,14 @@ import java.util.Set;
 // State for tracking: (vertex, distance, fuel, visited, path)
 public class State {
      int vertex;
-     int energyCost;
-     int pathEnergy;  // Raw energy of the path (sum of edge energies)
+     double energyCost;
+     double pathEnergy;  // Raw energy of the path (sum of edge energies)
      int fuel;
      State predecessor;
      boolean hasChargedHere;
      BitSet visited;
 
-    public State(int vertex, int energyCost, int pathEnergy, int fuel, State predecessor, boolean hasChargedHere) {
+    public State(int vertex, double energyCost, double pathEnergy, int fuel, State predecessor, boolean hasChargedHere) {
         this.vertex = vertex;
         this.energyCost = energyCost;
         this.pathEnergy = pathEnergy;

@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.btp.project.components.graph.model.Graph;
 import com.btp.project.components.graph.model.Pair;
+import com.btp.project.components.graph.utils.Normalizer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,12 +12,13 @@ public class Algo {
 
     private static final Logger logger = LogManager.getLogger(Algo.class);
 
-    public static Pair<Integer, List<Integer>> shortestPathWithFuel(
+    public static Pair<Double, List<Integer>> shortestPathWithFuel(
             int from, int to, Graph graph, int initialFuel,
             int capacity, double thresholdPenalty, int detourPenaltyFactor, int refuelCostPerUnit
     ) {
 
-        logger.info("Starting shortestPathWithFuel: from={}, to={}, initialFuel={}, capacity={}, thresholdPenalty={}, detourPenaltyFactor={}, refuelCostPerUnit={}",
+        logger.info("Starting shortestPathWithFuel: from={}, to={}, initialFuel={}, " +
+                        "capacity={}, thresholdPenalty={}, detourPenaltyFactor={}, refuelCostPerUnit={}",
                 from, to, initialFuel, capacity, thresholdPenalty, detourPenaltyFactor, refuelCostPerUnit);
 
         List<List<Pair<Integer, Integer>>> adj = graph.getAdjacencyList();
@@ -27,31 +29,34 @@ public class Algo {
         int shortestPathStartToTo = shortestPathFromVToTo[from];
         logger.info("Precomputed detour costs: start vertex distance to target = {}", shortestPathStartToTo);
 
+        Normalizer normalizer = new Normalizer(graph, from, to, capacity, shortestPathFromVToTo, shortestPathStartToTo);
+
         // Priority queue for Dijkstra's algorithm with fuel state
         PriorityQueue<State> pq = new PriorityQueue<>(Comparator
-                .comparingInt((State s) -> s.energyCost)
+                .comparingDouble((State s) -> s.energyCost)
                 .thenComparingInt(s -> -s.fuel));
 
-        int[][] dp = new int[n][capacity + 1];
-        for (int[] row : dp) Arrays.fill(row, Integer.MAX_VALUE);
-        dp[from][initialFuel] = 0;
+        double[][] dp = new double[n][capacity + 1];
+        for (double[] row : dp) Arrays.fill(row, Double.POSITIVE_INFINITY);
+        dp[from][initialFuel] = 0.0;
 
-        // Start with initial state
-        State initialState = new State(from, 0, 0, initialFuel, null, false);
+        // Initial state
+        State initialState = new State(from, 0.0, 0.0,
+                initialFuel, null, false);
+
         pq.offer(initialState);
         logger.info("Initial state added to PQ: {}", initialState);
 
         // Track best path
         State bestState = null;
-        int bestEnergy = Integer.MAX_VALUE;
-
+        double bestEnergy = Double.POSITIVE_INFINITY;
         int threshold = (int) (0.2 * capacity); // 20% threshold
 
         while (!pq.isEmpty()) {
             State cur = pq.poll();
             int u = cur.vertex;
-            int currEnergyCost = cur.energyCost; // Total energy including penalties
-            int currPathEnergy = cur.pathEnergy; // Raw Energy without penalties to find detour
+            double currEnergyCost = cur.energyCost;
+            double currPathEnergy = cur.pathEnergy;
             int currFuel = cur.fuel;
             boolean hasChargedHere = cur.hasChargedHere;
 
@@ -87,19 +92,23 @@ public class Algo {
                 }
 
                 int newFuel = currFuel - energyConsumed;
-                int newPathEnergy = currPathEnergy + energyConsumed;
+                double newPathEnergy = currPathEnergy + energyConsumed;
+
+                // Calculate normalized fuel term
+                double fuelTerm = energyConsumed / normalizer.getMaxFuel();
 
                 // Compute the estimated total energy including detour penalty
-                int estimatedTotalEnergy = newPathEnergy + shortestPathFromVToTo[v];
+                int estimatedTotalEnergy = (int) (newPathEnergy + shortestPathFromVToTo[v]);
                 int detourExcess = Math.max(0, estimatedTotalEnergy - shortestPathStartToTo);
-                int newEnergy = currEnergyCost + energyConsumed + (detourExcess * detourPenaltyFactor);
+                double detourTerm = (detourExcess / normalizer.getMaxDetour()) * detourPenaltyFactor;
 
-                // Apply threshold penalty if fuel is below threshold
+                double newEnergy = currEnergyCost + fuelTerm + detourTerm;
+
+                // Threshold penalty
                 if (newFuel < threshold) {
-                    int penalty = (int) ((threshold - newFuel) * thresholdPenalty);
-                    newEnergy += penalty;
-                    logger.info("Applied threshold penalty at vertex {}: fuel={}, penalty={}", v, newFuel, penalty);
-
+                    double distanceFromThreshold = threshold - newFuel;
+                    double thresholdTerm = (distanceFromThreshold / normalizer.getMaxDistanceFromThreshold()) * thresholdPenalty;
+                    newEnergy += thresholdTerm;
                 }
 
                 logger.info("Edge from {} to {}: energyConsumed={}, newFuel={}, newPathEnergy={}, newEnergy={}",
@@ -126,14 +135,13 @@ public class Algo {
             if (graph.isChargingStation(u) && !hasChargedHere) {
 
                 logger.info("At charging station at vertex {}: evaluating refueling options (current fuel={})", u, currFuel);
+
                 int step = Math.max(1, capacity / 10);
                 for (int charge = step; currFuel + charge <= capacity; charge += step) {
                     int newFuel = currFuel + charge;
-                    int refuelCost = charge * refuelCostPerUnit;
-                    int newEnergy = currEnergyCost + refuelCost;
+                    double refuelTerm = (charge / normalizer.getMaxRefuel()) * refuelCostPerUnit;
+                    double newEnergy = currEnergyCost + refuelTerm;
 
-                    logger.info("Charging option at {}: increment={}, newFuel={}, refuelCost={}, newEnergy={}",
-                            u, charge, newFuel, refuelCost, newEnergy);
                     // Check if new charging state is dominated
                     if (isDominated(u, newFuel, newEnergy, capacity, dp)) {
                         logger.info("Skipping charging option at vertex {} (new fuel {} dominated)", u, newFuel);
@@ -159,9 +167,9 @@ public class Algo {
         }
         Collections.reverse(path);
 
-        if (bestEnergy == Integer.MAX_VALUE) {
+        if (bestEnergy == Double.POSITIVE_INFINITY) {
             logger.info("No path found from {} to {}", from, to);
-            return new Pair<>(Integer.MAX_VALUE, Collections.emptyList());
+            return new Pair<>(Double.POSITIVE_INFINITY, Collections.emptyList());
         } else {
             logger.info("Path found to {}: energyCost={}, path={}", to, bestEnergy, path);
             return new Pair<>(bestEnergy, path);
@@ -215,7 +223,7 @@ public class Algo {
      * Checks if a new state (node, fuel, cost) is dominated by any existing state
      * with fuel >= current fuel and cost <= current cost.
      */
-    private static boolean isDominated(int node, int fuel, int cost, int capacity, int[][] dp) {
+    private static boolean isDominated(int node, int fuel, double cost, int capacity, double[][] dp) {
         // Check fuel levels STRICTLY GREATER than the current fuel
         for (int f = fuel + 1; f <= capacity; f++) {
             if (dp[node][f] <= cost) {
