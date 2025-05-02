@@ -98,8 +98,7 @@ public class GraphService {
         int detourPenaltyFactor = 30;
         int refuelCostPerUnit = 1;
 
-        return Algo.shortestPathWithFuel(params.getFrom(), params.getTo(), graph, params.getFuel(), capacity
-        , thresholdPenalty, detourPenaltyFactor, refuelCostPerUnit);
+        return Algo.shortestPathWithFuel(params.getFrom(), params.getTo(), graph, params.getFuel(), capacity);
     }
 
     /**

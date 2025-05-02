@@ -14,15 +14,32 @@ public class Algo {
 
     public static Pair<Double, List<Integer>> shortestPathWithFuel(
             int from, int to, Graph graph, int initialFuel,
-            int capacity, double thresholdPenalty, int detourPenaltyFactor, int refuelCostPerUnit
-    ) {
+            int capacity) {
 
-        logger.info("Starting shortestPathWithFuel: from={}, to={}, initialFuel={}, " +
-                        "capacity={}, thresholdPenalty={}, detourPenaltyFactor={}, refuelCostPerUnit={}",
-                from, to, initialFuel, capacity, thresholdPenalty, detourPenaltyFactor, refuelCostPerUnit);
+        logger.info("Starting shortestPathWithFuel: from={}, to={}, initialFuel={}, capacity={}",
+                from, to, initialFuel, capacity);
 
         List<List<Pair<Integer, Integer>>> adj = graph.getAdjacencyList();
         int n = adj.size();
+
+        // Initialize AHP with default pairwise comparison matrix
+        double[][] defaultPairwiseMatrix = {
+                // Energy, Detour, Recharge, Threshold
+                {1, 3, 5, 5},     // Energy is moderately more important than Detour, strongly more than others
+                {1/3.0, 1, 3, 3}, // Detour is moderately more important than Recharge and Threshold
+                {1/5.0, 1/3.0, 1, 1}, // Recharge and Threshold are equally important
+                {1/5.0, 1/3.0, 1, 1}
+        };
+
+        AHP ahp = new AHP(defaultPairwiseMatrix);
+        double[] weights = ahp.getWeights();
+        double energyWeight = weights[0];
+        double detourWeight = weights[1];
+        double rechargeWeight = weights[2];
+        double thresholdWeight = weights[3];
+
+        logger.info("AHP weights - Energy: {}, Detour: {}, Recharge: {}, Threshold: {}",
+                energyWeight, detourWeight, rechargeWeight, thresholdWeight);
 
         // Precompute the shortest paths for detour penalty
         int[] shortestPathFromVToTo = computeShortestPathEnergy(to, adj, n);
@@ -102,19 +119,19 @@ public class Algo {
                 double newPathEnergy = currPathEnergy + energyConsumed;
 
                 // Calculate normalized fuel term
-                double fuelTerm = energyConsumed / normalizer.getMaxFuel();
+                double fuelTerm = (energyConsumed / normalizer.getMaxFuel()) * energyWeight;
 
                 // Compute the estimated total energy including detour penalty
                 int estimatedTotalEnergy = (int) (newPathEnergy + shortestPathFromVToTo[v]);
                 int detourExcess = Math.max(0, estimatedTotalEnergy - shortestPathStartToTo);
-                double detourTerm = (detourExcess / normalizer.getMaxDetour()) * detourPenaltyFactor;
+                double detourTerm = (detourExcess / normalizer.getMaxDetour()) * detourWeight;
 
                 double newEnergy = currEnergyCost + fuelTerm + detourTerm;
 
                 // Threshold penalty
                 if (newFuel < threshold) {
                     double distanceFromThreshold = threshold - newFuel;
-                    double thresholdTerm = (distanceFromThreshold / normalizer.getMaxDistanceFromThreshold()) * thresholdPenalty;
+                    double thresholdTerm = (distanceFromThreshold / normalizer.getMaxDistanceFromThreshold()) * thresholdWeight;
                     newEnergy += thresholdTerm;
                     logger.info("Threshold penalty applied: distance={}, term={}", distanceFromThreshold, thresholdTerm);
                 }
@@ -146,7 +163,7 @@ public class Algo {
                 int step = Math.max(1, capacity / 10);
                 for (int charge = step; currFuel + charge <= capacity; charge += step) {
                     int newFuel = currFuel + charge;
-                    double refuelTerm = (charge / normalizer.getMaxRefuel()) * refuelCostPerUnit;
+                    double refuelTerm = (charge / normalizer.getMaxRefuel()) * rechargeWeight;
                     double newEnergy = currEnergyCost + refuelTerm;
 
                     // Check if new charging state is dominated
