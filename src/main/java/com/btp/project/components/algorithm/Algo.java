@@ -14,24 +14,25 @@ public class Algo {
 
     public static Pair<Double, List<Integer>> shortestPathWithFuel(
             int from, int to, Graph graph, int initialFuel,
+            double[][] pairWiseComparisonMatrix,
             int capacity) {
 
-        logger.info("Starting shortestPathWithFuel: from={}, to={}, initialFuel={}, capacity={}",
-                from, to, initialFuel, capacity);
+        logger.info("Starting shortestPathWithFuel: from={}, to={}, initialFuel={}, capacity={}, matrix : {}",
+                from, to, initialFuel, capacity, pairWiseComparisonMatrix);
 
         List<List<Pair<Integer, Integer>>> adj = graph.getAdjacencyList();
         int n = adj.size();
 
         // Initialize AHP with default pairwise comparison matrix
-        double[][] defaultPairwiseMatrix = {
-                // Energy, Detour, Recharge, Threshold
-                {1, 3, 5, 5},     // Energy is moderately more important than Detour, strongly more than others
-                {1/3.0, 1, 3, 3}, // Detour is moderately more important than Recharge and Threshold
-                {1/5.0, 1/3.0, 1, 1}, // Recharge and Threshold are equally important
-                {1/5.0, 1/3.0, 1, 1}
-        };
+//        double[][] defaultPairwiseMatrix = {
+//                // Energy, Detour, Recharge, Threshold
+//                {1, 3, 5, 5},     // Energy is moderately more important than Detour, strongly more than others
+//                {1/3.0, 1, 3, 3}, // Detour is moderately more important than Recharge and Threshold
+//                {1/5.0, 1/3.0, 1, 1}, // Recharge and Threshold are equally important
+//                {1/5.0, 1/3.0, 1, 1}
+//        };
 
-        AHP ahp = new AHP(defaultPairwiseMatrix);
+        AHP ahp = new AHP(pairWiseComparisonMatrix);
         double[] weights = ahp.getWeights();
         double energyWeight = weights[0];
         double detourWeight = weights[1];

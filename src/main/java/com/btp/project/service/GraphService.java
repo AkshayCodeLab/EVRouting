@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import com.btp.project.dto.response.GraphResponse;
+import com.btp.project.utils.MatrixUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import com.btp.project.Repository.VehicleRepository;
 import com.btp.project.components.algorithm.Algo;
-import com.btp.project.components.algorithm.AlgoParams;
+import com.btp.project.dto.request.AlgoParams;
 import com.btp.project.components.graph.model.Graph;
 import com.btp.project.components.graph.model.Link;
 import com.btp.project.components.graph.model.Pair;
@@ -83,7 +84,7 @@ public class GraphService {
     }
 
     /**
-     * Find shortest path with fuel constraints
+     * Find the shortest path with fuel constraints
      * 
      * @param params Algorithm parameters
      * @return Shortest path details
@@ -93,12 +94,11 @@ public class GraphService {
         logger.info("Finding shortest path: from {} to {}, fuel: {}", params.getFrom(),
                 params.getTo(), params.getFuel());
 
+        // Converting to primitive Matrix just for easier matrix access
+        double[][] primitiveMatrix = MatrixUtils.toPrimitiveMatrix(params.getMatrix());
         int capacity = 20;
-        double thresholdPenalty = 0.3;
-        int detourPenaltyFactor = 30;
-        int refuelCostPerUnit = 1;
 
-        return Algo.shortestPathWithFuel(params.getFrom(), params.getTo(), graph, params.getFuel(), capacity);
+        return Algo.shortestPathWithFuel(params.getFrom(), params.getTo(), graph, params.getFuel(), primitiveMatrix, capacity);
     }
 
     /**

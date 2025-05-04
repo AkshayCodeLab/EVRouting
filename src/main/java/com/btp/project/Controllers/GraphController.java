@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import com.btp.project.components.algorithm.AlgoParams;
+import com.btp.project.dto.request.AlgoParams;
 import com.btp.project.components.graph.model.Link;
 import com.btp.project.dto.request.CalibrateParams;
 import com.btp.project.dto.request.GraphData;
@@ -43,7 +43,9 @@ public class GraphController {
 
     @PostMapping("/shortestPath")
     public ResponseEntity<?> getShortestPath(@RequestBody AlgoParams algoParams) {
-
+        logger.info("Received parameters : from {} to {} fuel {} ", algoParams.getFrom(),
+                algoParams.getTo(), algoParams.getFuel());
+        logger.info("Received Matrix: {}", algoParams.getMatrix());
         return ResponseEntity.ok(graphService.findShortestPath(algoParams));
     }
 
