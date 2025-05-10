@@ -53,9 +53,7 @@ We propose a dynamic EV routing algorithm that:
 > - Visualization of graph traversal and charging logic
 > - Preference matrix configuration in real-time
 
-🎥 [Watch the Demo Video](./ev-routing-demo.mp4)
-
-> 💡 Tip: If the file is large, consider uploading it to YouTube or Drive and linking it here instead.
+🎥 [Watch the Demo Video](https://drive.google.com/file/d/12mfrDBMILHb9M-z3RpaqTBwGC_TW5AGj/view?usp=sharing)
 
 ## 🌐 Frontend Repository
 
