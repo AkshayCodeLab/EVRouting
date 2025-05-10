@@ -1,29 +1,72 @@
-This is the backend repository of the project: Optimal routing of electric vehicles via Graph Algorithms using Constrained bounded shortest path approach. 
+# ⚡ Intelligent EV Routing System
 
-**Focus of this project:**
+A smart routing solution for electric vehicles (EVs) that ensures optimal travel planning across a road network with charging stations, while minimizing range anxiety and maximizing user satisfaction based on customizable preferences.
 
-• To develop an intelligent routing system for Electric Vehicles to optimize travel time, energy consumption, and
-charging stops and increased safety.
+## 🚗 Problem Statement
 
-• Personalized routes based on vehicle model, battery levels, and energy efficiency for seamless journeys.
+Electric vehicles face a unique set of challenges:
 
-• Automated charging station selection and charge level optimization to prevent range anxiety and save time.
+- Limited range between charges (range anxiety)
+- Sparse and varied distribution of charging stations
+- Need for customized planning based on:
+    - Vehicle model & battery capacity
+    - Initial charge level
+    - User preferences (e.g., minimal detours, maximum energy efficiency)
 
-• Developed a Proof of Concept to showcase real-time route planning and efficiency.
+Existing navigation systems often overlook these critical EV-specific factors, leading to suboptimal routing decisions.
 
-• Tech Stack: Java, JavaScript, Spring Boot, React.js, REST APIs, SQL
+## 🧠 Our Solution
 
-Refer to this Google Slides for a detailed overview of the project:
+We propose a dynamic EV routing algorithm that:
 
-https://docs.google.com/presentation/d/1_Ae_8VR6oMtHL1p948cl3Ap6rSF10_ER1smGaa7Lwto/edit?usp=sharing
+- **Adapts to vehicle specifications** (battery size, consumption rate)
+- **Customizes routes** based on:
+    - Current battery level
+    - User-defined source and destination
+- **Optimizes charging stops**, ensuring:
+    - No overcharging or undercharging
+    - Balanced energy usage across the route
+- **Uses a pair-wise User Preference Matrix**, allowing users to prioritize:
+    - Energy Efficiency
+    - Detour Minimization
+    - Safety Thresholds (e.g., minimum battery % between stops)
+    - Refueling Frequency
 
-Frontend of the repository: 
+## 🛠️ Key Features
 
-https://github.com/AkshayCodeLab/btp_frontend
+- Graph-based representation of road networks with:
+    - Roads
+    - Junctions
+    - Charging stations
+- Optimal path calculation that:
+    - Prevents EV from running out of charge
+    - Maintains battery health
+    - Honors user-specific travel preferences
+- Real-time simulation of routing with visualization
 
-Demonstration Video:
+## 🧪 POC Video Demo
 
-This is a small POC of the current project status until December'2024. The final POC is still under development.
+> 📽️ **Proof of Concept (POC)** video showcases:
+> - Interactive frontend with source/destination inputs
+> - Custom vehicle & battery input
+> - Dynamic route calculation
+> - Visualization of graph traversal and charging logic
+> - Preference matrix configuration in real-time
 
-https://github.com/user-attachments/assets/00d7d675-8874-419a-ba04-6559e6e3f372
+🎥 [Watch the Demo Video](./ev-routing-demo.mp4)
+
+> 💡 Tip: If the file is large, consider uploading it to YouTube or Drive and linking it here instead.
+
+## 🌐 Frontend Repository
+
+Check out the frontend implementation here:  
+🔗 [EV Routing Frontend](https://github.com/AkshayCodeLab/EV_Routing_Frontend)
+
+## 📊 Algorithm Highlights
+
+- Uses **pairwise comparison matrix** (User Preference Matrix) for decision weights
+- Combines aspects of:
+    - Dijkstra’s Algorithm
+    - Multi-criteria decision making (MCDM)
+- Scalable for real-time EV fleet routing or individual journey planning
 
