@@ -53,20 +53,9 @@ We propose a dynamic EV routing algorithm that:
 > - Visualization of graph traversal and charging logic
 > - Preference matrix configuration in real-time
 
-🎥 [Watch the Demo Video](./ev-routing-demo.mp4)
-
-> 💡 Tip: If the file is large, consider uploading it to YouTube or Drive and linking it here instead.
+🎥 [Watch the Demo Video](https://drive.google.com/file/d/12mfrDBMILHb9M-z3RpaqTBwGC_TW5AGj/view?usp=sharing)
 
 ## 🌐 Frontend Repository
 
 Check out the frontend implementation here:  
 🔗 [EV Routing Frontend](https://github.com/AkshayCodeLab/EV_Routing_Frontend)
-
-## 📊 Algorithm Highlights
-
-- Uses **pairwise comparison matrix** (User Preference Matrix) for decision weights
-- Combines aspects of:
-    - Dijkstra’s Algorithm
-    - Multi-criteria decision making (MCDM)
-- Scalable for real-time EV fleet routing or individual journey planning
-
