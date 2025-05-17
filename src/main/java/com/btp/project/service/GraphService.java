@@ -3,6 +3,7 @@ package com.btp.project.service;
 import java.io.InputStream;
 import java.util.List;
 
+import com.btp.project.dto.response.AlgoResponse;
 import com.btp.project.dto.response.GraphResponse;
 import com.btp.project.utils.MatrixUtils;
 import org.apache.logging.log4j.LogManager;
@@ -89,7 +90,7 @@ public class GraphService {
      * @param params Algorithm parameters
      * @return Shortest path details
      */
-    public Pair<Double, List<Integer>> findShortestPath(AlgoParams params) {
+    public AlgoResponse findShortestPath(AlgoParams params) {
 
         logger.info("Finding shortest path: from {} to {}, fuel: {}", params.getFrom(),
                 params.getTo(), params.getFuel());

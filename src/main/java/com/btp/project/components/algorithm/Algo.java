@@ -5,6 +5,7 @@ import java.util.*;
 import com.btp.project.components.graph.model.Graph;
 import com.btp.project.components.graph.model.Pair;
 import com.btp.project.components.graph.utils.Normalizer;
+import com.btp.project.dto.response.AlgoResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,7 +13,7 @@ public class Algo {
 
     private static final Logger logger = LogManager.getLogger(Algo.class);
 
-    public static Pair<Double, List<Integer>> shortestPathWithFuel(
+    public static AlgoResponse shortestPathWithFuel(
             int from, int to, Graph graph, int initialFuel,
             double[][] pairWiseComparisonMatrix,
             int capacity) {
@@ -22,15 +23,6 @@ public class Algo {
 
         List<List<Pair<Integer, Integer>>> adj = graph.getAdjacencyList();
         int n = adj.size();
-
-        // Initialize AHP with default pairwise comparison matrix
-//        double[][] defaultPairwiseMatrix = {
-//                // Energy, Detour, Recharge, Threshold
-//                {1, 3, 5, 5},     // Energy is moderately more important than Detour, strongly more than others
-//                {1/3.0, 1, 3, 3}, // Detour is moderately more important than Recharge and Threshold
-//                {1/5.0, 1/3.0, 1, 1}, // Recharge and Threshold are equally important
-//                {1/5.0, 1/3.0, 1, 1}
-//        };
 
         AHP ahp = new AHP(pairWiseComparisonMatrix);
         double[] weights = ahp.getWeights();
@@ -177,7 +169,7 @@ public class Algo {
                     if (newEnergy < dp[u][newFuel]) {
 
                         dp[u][newFuel] = newEnergy;
-                        State chargeState = new State(u, newEnergy, currPathEnergy, newFuel, cur.predecessor, true);
+                        State chargeState = new State(u, newEnergy, currPathEnergy, newFuel, cur, true, charge);
                         pq.offer(chargeState);
                         logger.info("Enqueued charging state: {}", chargeState);
                     }
@@ -187,17 +179,31 @@ public class Algo {
 
         // Reconstruct path
         List<Integer> path = new ArrayList<>();
+        Map<Integer, Integer> recharges = new HashMap<>();
+
         for (State s = bestState; s != null; s = s.predecessor) {
-            path.add(s.vertex);
+
+            if (graph.isChargingStation(s.vertex)) {
+                recharges.put(s.vertex, recharges.getOrDefault(s.vertex, 0) + s.rechargeAmount);
+            }
+
+            if (path.isEmpty() || !path.get(path.size() - 1).equals(s.vertex)) {
+                path.add(s.vertex);
+            }
         }
+
         Collections.reverse(path);
+
+        logger.info("Recharge events at charging stations: {}", recharges);
 
         if (bestEnergy == Double.POSITIVE_INFINITY) {
             logger.info("No feasible path found from {} to {}", from, to);
-            return new Pair<>(Double.POSITIVE_INFINITY, Collections.emptyList());
+//            return new Pair<>(Double.POSITIVE_INFINITY, Collections.emptyList());
+            return new AlgoResponse(Double.POSITIVE_INFINITY, Collections.emptyList(), Collections.emptyMap());
         } else {
             logger.info("[END] Path found: cost={}, path={} (length={})", bestEnergy, path, path.size());
-            return new Pair<>(bestEnergy, path);
+            return new AlgoResponse(bestEnergy, path, recharges);
+//            return new Pair<>(bestEnergy, path);
         }
     }
 
